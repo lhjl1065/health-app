@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>健康日志 · Wellness Journal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cream: #FAF7F2;
+            --sage: #8B9D83;
+            --sage-dark: #6B7D63;
+            --terracotta: #D4816F;
+            --terracotta-light: #E8A896;
+            --warm-brown: #8B6F47;
+            --soft-white: #FFFFFF;
+            --text-dark: #2C2C2C;
+            --text-medium: #5A5A5A;
+            --text-light: #8E8E8E;
+            --shadow-soft: rgba(139, 111, 71, 0.08);
+            --shadow-medium: rgba(139, 111, 71, 0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(165deg, #FAF7F2 0%, #F0EBE3 50%, #E8DFD0 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: var(--text-dark);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            right: -20%;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(139, 157, 131, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(5deg); }
+            66% { transform: translate(-20px, 20px) rotate(-5deg); }
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -30%;
+            left: -15%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(212, 129, 111, 0.06) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float 25s ease-in-out infinite reverse;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: var(--soft-white);
+            border-radius: 24px;
+            padding: 50px;
+            box-shadow: 0 20px 60px var(--shadow-soft), 0 8px 20px var(--shadow-medium);
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(139, 111, 71, 0.06);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--sage) 0%, var(--terracotta) 50%, var(--warm-brown) 100%);
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            color: var(--text-dark);
+            margin-bottom: 12px;
+            font-size: 42px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+        }
+
+        .date {
+            color: var(--text-medium);
+            margin-bottom: 40px;
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .form-group {
+            margin-bottom: 28px;
+            animation: slideIn 0.5s ease-out backwards;
+        }
+
+        .form-group:nth-child(1) { animation-delay: 0.1s; }
+        .form-group:nth-child(2) { animation-delay: 0.15s; }
+        .form-group:nth-child(3) { animation-delay: 0.2s; }
+        .form-group:nth-child(4) { animation-delay: 0.25s; }
+        .form-group:nth-child(5) { animation-delay: 0.3s; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--text-dark);
+            font-weight: 600;
+            font-size: 15px;
+            letter-spacing: 0.3px;
+        }
+
+        input[type="text"], input[type="number"], textarea {
+            width: 100%;
+            padding: 16px 18px;
+            border: 2px solid rgba(139, 157, 131, 0.15);
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: 'DM Sans', sans-serif;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--soft-white);
+            color: var(--text-dark);
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus, textarea:focus {
+            outline: none;
+            border-color: var(--sage);
+            box-shadow: 0 0 0 4px rgba(139, 157, 131, 0.1);
+            transform: translateY(-2px);
+        }
+
+        input[type="text"]::placeholder, input[type="number"]::placeholder, textarea::placeholder {
+            color: var(--text-light);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--sage) 0%, var(--sage-dark) 100%);
+            color: var(--soft-white);
+            padding: 18px 40px;
+            border: none;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 20px rgba(139, 157, 131, 0.25);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            font-size: 14px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(139, 157, 131, 0.35);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .alert {
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 28px;
+            font-weight: 500;
+            animation: slideDown 0.4s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .alert-success {
+            background: rgba(139, 157, 131, 0.12);
+            color: var(--sage-dark);
+            border-left: 4px solid var(--sage);
+        }
+
+        .alert-error {
+            background: rgba(212, 129, 111, 0.12);
+            color: var(--terracotta);
+            border-left: 4px solid var(--terracotta);
+        }
+
+        .history {
+            margin-top: 40px;
+        }
+
+        .history h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--text-dark);
+            margin-bottom: 24px;
+            font-size: 32px;
+            font-weight: 600;
+        }
+
+        .record {
+            background: linear-gradient(135deg, rgba(250, 247, 242, 0.6) 0%, rgba(255, 255, 255, 0.8) 100%);
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(139, 157, 131, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .record:hover {
+            transform: translateX(4px);
+            box-shadow: 0 8px 24px var(--shadow-soft);
+        }
+
+        .record-date {
+            font-weight: 600;
+            color: var(--sage-dark);
+            margin-bottom: 12px;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+        }
+
+        .record-items {
+            color: var(--text-medium);
+            font-size: 15px;
+            line-height: 1.8;
+        }
+
+        .record-items > div {
+            margin-bottom: 6px;
+        }
+
+        @media (max-width: 600px) {
+            .card {
+                padding: 30px 24px;
+            }
+            h1 {
+                font-size: 32px;
+            }
+            body {
+                padding: 20px 16px;
+            }
+            #addTaskForm {
+                flex-direction: column !important;
+            }
+            #addTaskForm textarea {
+                width: 100% !important;
+                min-height: 80px !important;
+            }
+            #addTaskForm button[type="submit"] {
+                width: 100% !important;
+            }
+            .card > div:first-child {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 12px;
+            }
+            .card > div:first-child > div {
+                width: 100%;
+                flex-direction: column !important;
+            }
+            .card > div:first-child > div > a {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        .reward-section {
+            background: linear-gradient(135deg, var(--terracotta-light) 0%, var(--terracotta) 100%);
+            padding: 35px;
+            border-radius: 20px;
+            margin-bottom: 35px;
+            color: var(--soft-white);
+            box-shadow: 0 12px 40px rgba(212, 129, 111, 0.25);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .reward-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .reward-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .reward-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 15px;
+            font-weight: 500;
+            position: relative;
+            z-index: 1;
+        }
+
+        .progress-bar-container {
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 12px;
+            height: 36px;
+            overflow: hidden;
+            margin-bottom: 18px;
+            position: relative;
+            z-index: 1;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-bar {
+            background: var(--soft-white);
+            height: 100%;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--terracotta);
+            font-size: 15px;
+            letter-spacing: 0.5px;
+        }
+
+        .reward-button {
+            background: var(--soft-white);
+            color: var(--terracotta);
+            padding: 16px 32px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 100%;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .reward-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .reward-button:disabled {
+            background: rgba(255, 255, 255, 0.4);
+            cursor: not-allowed;
+            transform: none;
+            color: rgba(212, 129, 111, 0.6);
+        }
+
+        .weekly-stats {
+            background: linear-gradient(135deg, rgba(250, 247, 242, 0.5) 0%, rgba(255, 255, 255, 0.7) 100%);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 28px;
+            border: 1px solid rgba(139, 157, 131, 0.12);
+        }
+
+        .weekly-stats h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--text-dark);
+            margin-bottom: 20px;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .week-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: var(--soft-white);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--sage);
+            transition: all 0.3s ease;
+        }
+
+        .week-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 16px var(--shadow-soft);
+        }
+
+        .week-label {
+            font-weight: 500;
+            color: var(--text-dark);
+            font-size: 15px;
+        }
+
+        .week-points {
+            font-weight: 700;
+            color: var(--sage-dark);
+            font-size: 20px;
+        }
+
+        small {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        input[readonly] {
+            background-color: rgba(139, 157, 131, 0.05);
+            cursor: not-allowed;
+            border-color: rgba(139, 157, 131, 0.1);
+        }
+
+        input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            accent-color: var(--sage);
+        }
+        /* 个人整洁人偶样式 */
+        .grooming-doll-container {
+            background: var(--soft-white);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 8px var(--shadow-soft);
+            margin-top: 10px;
+        }
+        .grooming-doll {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            max-width: 320px;
+            margin: 0 auto;
+        }
+        .doll-part {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 8px;
+            border-radius: 12px;
+            background: #f0ebe3;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+        .doll-part:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px var(--shadow-medium);
+        }
+        .doll-part.active {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border-color: var(--sage);
+            box-shadow: 0 2px 12px rgba(139, 157, 131, 0.3);
+        }
+        .doll-part.active .part-icon {
+            transform: scale(1.15);
+        }
+        .part-icon {
+            font-size: 24px;
+            transition: transform 0.3s ease;
+        }
+        .part-label {
+            font-size: 12px;
+            color: var(--text-medium);
+            margin-top: 4px;
+            font-weight: 500;
+        }
+        .doll-part.active .part-label {
+            color: var(--sage-dark);
+            font-weight: 600;
+        }
+        .grooming-status {
+            text-align: center;
+            margin-top: 14px;
+            font-size: 14px;
+            color: var(--text-medium);
+        }
+        .grooming-count {
+            font-weight: 700;
+            color: var(--sage-dark);
+            font-size: 16px;
+        }
+        .grooming-bonus {
+            display: inline-block;
+            margin-left: 8px;
+            color: var(--terracotta);
+            font-weight: 700;
+            animation: bonusPop 0.5s ease;
+        }
+        @keyframes bonusPop {
+            0% { transform: scale(0.5); opacity: 0; }
+            60% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h1>今日健康记录</h1>
+                <div style="display: flex; gap: 12px;">
+                    <a href="/recurring-tasks" style="padding: 12px 24px; background: linear-gradient(135deg, var(--sage) 0%, var(--sage-dark) 100%); color: var(--soft-white); text-decoration: none; border-radius: 12px; font-weight: 600; transition: all 0.3s ease; font-size: 15px;">🔄 重复任务</a>
+                    <a href="/journal" style="padding: 12px 24px; background: linear-gradient(135deg, var(--terracotta-light) 0%, var(--terracotta) 100%); color: var(--soft-white); text-decoration: none; border-radius: 12px; font-weight: 600; transition: all 0.3s ease; font-size: 15px;">📔 我的日记</a>
+                </div>
+            </div>
+            <div class="date" th:text="${today}"></div>
+
+            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+            <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+            <!-- 奖励进度区域 -->
+            <div class="reward-section">
+                <div class="reward-title">
+                    🎁 奖励进度
+                </div>
+                <div class="reward-stats">
+                    <span>累计总积分: <strong th:text="${totalPoints}">0</strong></span>
+                    <span>可用积分: <strong th:text="${availablePoints}">0</strong></span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" th:style="'width: ' + ${rewardProgress} + '%'" th:text="${#numbers.formatDecimal(rewardProgress, 1, 1)} + '%'">
+                    </div>
+                </div>
+                <div style="margin-bottom: 14px; font-size: 15px; position: relative; z-index: 1;">
+                    <span th:if="${completedRewards > 0}">🎉 你已经达成 <strong th:text="${completedRewards}">0</strong> 个奖励！</span>
+                    <span th:if="${completedRewards == 0}">还需 <strong th:text="${60 - (availablePoints % 60)}">60</strong> 分达成下一个奖励</span>
+                </div>
+                <form action="/consume-reward" method="post" style="margin: 0;">
+                    <button type="submit" class="reward-button" th:disabled="${!canConsumeReward}">
+                        <span th:if="${canConsumeReward}">✅ 已消耗奖励（扣除60分）</span>
+                        <span th:if="${!canConsumeReward}">⏳ 暂无可消耗的奖励</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- 今日任务区域 -->
+            <div class="weekly-stats" style="margin-bottom: 28px;">
+                <h2>✅ 今日任务</h2>
+                <div th:if="${todayTasks != null and !todayTasks.isEmpty()}" id="todayTasksContainer">
+                    <div th:each="task, iterStat : ${todayTasks}" th:id="'today-task-' + ${task.id}" style="padding: 16px 20px; background: white; border-radius: 12px; margin-bottom: 12px; display: flex; align-items: center; gap: 14px; transition: all 0.3s ease;">
+                        <input type="checkbox" th:checked="${task.completed}" th:attr="data-task-id=${task.id},data-task-points=${task.points != null ? task.points : 0.1}" onchange="toggleTodayTask(this)" style="width: 22px; height: 22px; cursor: pointer;">
+                        <span class="task-text" th:style="${task.completed ? 'text-decoration: line-through; color: #999;' : 'color: #333;'}">
+                            <strong th:text="${iterStat.count} + '. '" style="color: var(--sage-dark); margin-right: 10px; font-size: 16px;"></strong>
+                            <span th:text="${task.description}"></span>
+                            <span style="margin-left: 8px; color: var(--sage-dark); font-size: 14px; font-weight: 600;" th:if="${task.points != null and task.points != 0.1}">
+                                (⭐<span th:text="${task.points}"></span>分)
+                            </span>
+                        </span>
+                    </div>
+                    <div id="taskPointsDisplay" style="margin-top: 18px; padding: 18px 20px; background: white; border-radius: 12px; border-left: 4px solid var(--sage);" th:attr="data-task-points=${todayTaskPoints}">
+                        <span style="font-weight: 600; color: var(--text-dark);">任务积分: </span>
+                        <span id="taskPointsValue" style="font-weight: 700; color: var(--sage-dark); font-size: 20px;" th:text="${#numbers.formatDecimal(todayTaskPoints, 1, 1)} + ' 分'"></span>
+                        <span style="color: var(--text-medium); font-size: 14px; margin-left: 12px;">
+                            (已完成 <span id="completedCount" th:text="${#lists.size(todayTasks.?[completed])}">0</span> / <span id="totalCount" th:text="${#lists.size(todayTasks)}">0</span>)
+                        </span>
+                    </div>
+                </div>
+                <div th:if="${todayTasks == null or todayTasks.isEmpty()}" style="padding: 24px; text-align: center; color: var(--text-light); background: white; border-radius: 12px;">
+                    今天没有任务
+                </div>
+            </div>
+
+            <form action="/save" method="post">
+                <div class="form-group">
+                    <label for="diet1">💧 饮食1</label>
+                    <input type="text" id="diet1" name="diet1" placeholder="每天5大杯水，间隔2小时。早上两个鸡蛋" th:value="${todayRecord != null ? todayRecord.diet1 : ''}">
+                </div>
+
+                <div class="form-group">
+                    <label for="diet2">🥗 饮食2</label>
+                    <input type="text" id="diet2" name="diet2" placeholder="中午不过饱，晚上蔬菜+优质蛋白，19点后不进食" th:value="${todayRecord != null ? todayRecord.diet2 : ''}">
+                </div>
+
+                <div class="form-group">
+                    <label for="sleep">😴 睡眠</label>
+                    <input type="text" id="sleep" name="sleep" placeholder="按照洗漱后完毕计时算法" th:value="${todayRecord != null ? todayRecord.sleep : ''}">
+                </div>
+
+                <div class="form-group">
+                    <label for="selfControl">🧘 清心寡欲</label>
+                    <input type="text" id="selfControl" name="selfControl" placeholder="除奖励日外，其余时间不手淫，否则扣1分" th:value="${todayRecord != null ? todayRecord.selfControl : ''}">
+                </div>
+
+                <div class="form-group">
+                    <label for="fitness">💪 健身</label>
+                    <input type="text" id="fitness" name="fitness" placeholder="有氧拳击、滚轮" th:value="${todayRecord != null ? todayRecord.fitness : ''}">
+                </div>
+
+                <div class="form-group">
+                    <label for="workPoints">💼 工作积分</label>
+                    <input type="text" id="workPoints" name="workPoints" placeholder="今日工作积分" th:value="${todayRecord != null ? todayRecord.workPoints : ''}">
+                </div>
+
+                <div class="form-group">
+                    <label for="studyPoints">📚 学习积分</label>
+                    <input type="text" id="studyPoints" name="studyPoints" placeholder="今日学习积分" th:value="${todayRecord != null ? todayRecord.studyPoints : ''}">
+                </div>
+
+                <div class="form-group">
+                    <label for="bodyFatInput">⚖️ 体脂率</label>
+                    <input type="number" step="0.1" id="bodyFatInput" placeholder="输入体脂率 (%)">
+                    <input type="hidden" id="bodyFat" name="bodyFat" th:value="${todayRecord != null ? todayRecord.bodyFat : ''}">
+                    <input type="hidden" id="yesterdayBodyFat" th:value="${yesterdayBodyFat}">
+                    <small style="display: block; margin-top: 8px;">
+                        积分将自动计算：(昨日体脂率 - 今日体脂率) × 10
+                        <span th:if="${yesterdayBodyFat != null and yesterdayBodyFat > 0}">
+                            （昨日: <span th:text="${#numbers.formatDecimal(yesterdayBodyFat, 1, 1)}"></span>%）
+                        </span>
+                    </small>
+                </div>
+
+                <!-- 个人整洁人偶 -->
+                <div class="form-group">
+                    <label>🧍 个人整洁检查</label>
+                    <div class="grooming-doll-container">
+                        <div class="grooming-doll">
+                            <!-- 头发 -->
+                            <div class="doll-part doll-hair" data-part="HAIR"
+                                 th:classappend="${groomingRecord != null and groomingRecord.completedParts.contains('HAIR')} ? ' active' : ''">
+                                <span class="part-icon">💇</span>
+                                <span class="part-label">头发</span>
+                            </div>
+                            <!-- 脸部 -->
+                            <div class="doll-part doll-face" data-part="FACE"
+                                 th:classappend="${groomingRecord != null and groomingRecord.completedParts.contains('FACE')} ? ' active' : ''">
+                                <span class="part-icon">😊</span>
+                                <span class="part-label">脸部</span>
+                            </div>
+                            <!-- 嘴 -->
+                            <div class="doll-part doll-mouth" data-part="MOUTH"
+                                 th:classappend="${groomingRecord != null and groomingRecord.completedParts.contains('MOUTH')} ? ' active' : ''">
+                                <span class="part-icon">👄</span>
+                                <span class="part-label">嘴</span>
+                            </div>
+                            <!-- 身体 -->
+                            <div class="doll-part doll-body" data-part="BODY"
+                                 th:classappend="${groomingRecord != null and groomingRecord.completedParts.contains('BODY')} ? ' active' : ''">
+                                <span class="part-icon">🫁</span>
+                                <span class="part-label">身体</span>
+                            </div>
+                            <!-- 上衣 -->
+                            <div class="doll-part doll-top" data-part="TOP"
+                                 th:classappend="${groomingRecord != null and groomingRecord.completedParts.contains('TOP')} ? ' active' : ''">
+                                <span class="part-icon">👔</span>
+                                <span class="part-label">上衣</span>
+                            </div>
+                            <!-- 指甲 -->
+                            <div class="doll-part doll-nails" data-part="NAILS"
+                                 th:classappend="${groomingRecord != null and groomingRecord.completedParts.contains('NAILS')} ? ' active' : ''">
+                                <span class="part-icon">💅</span>
+                                <span class="part-label">指甲</span>
+                            </div>
+                            <!-- 裤子 -->
+                            <div class="doll-part doll-pants" data-part="PANTS"
+                                 th:classappend="${groomingRecord != null and groomingRecord.completedParts.contains('PANTS')} ? ' active' : ''">
+                                <span class="part-icon">👖</span>
+                                <span class="part-label">裤子</span>
+                            </div>
+                            <!-- 袜子 -->
+                            <div class="doll-part doll-socks" data-part="SOCKS"
+                                 th:classappend="${groomingRecord != null and groomingRecord.completedParts.contains('SOCKS')} ? ' active' : ''">
+                                <span class="part-icon">🧦</span>
+                                <span class="part-label">袜子</span>
+                            </div>
+                            <!-- 鞋子 -->
+                            <div class="doll-part doll-shoes" data-part="SHOES"
+                                 th:classappend="${groomingRecord != null and groomingRecord.completedParts.contains('SHOES')} ? ' active' : ''">
+                                <span class="part-icon">👟</span>
+                                <span class="part-label">鞋子</span>
+                            </div>
+                        </div>
+                        <div class="grooming-status" id="groomingStatus">
+                            <span class="grooming-count" id="groomingCount">0</span>/9 已整洁
+                            <span class="grooming-bonus" id="groomingBonus" style="display:none;">✨ +0.5分</span>
+                        </div>
+                    </div>
+                    <input type="hidden" id="groomingPoints" th:value="${groomingPoints != null ? groomingPoints : 0}">
+                </div>
+
+                <div class="form-group">
+                    <label for="dailyTotal">📊 今日累计</label>
+                    <input type="text" id="dailyTotal" name="dailyTotal" placeholder="自动计算" readonly th:value="${todayRecord != null ? todayRecord.dailyTotal : ''}">
+                    <small style="display: block; margin-top: 8px;">所有积分项的总和（自动计算）</small>
+                </div>
+
+                <button type="submit" class="btn">💾 保存今日记录</button>
+            </form>
+
+            <script>
+                // 体脂率计算
+                const bodyFatInput = document.getElementById('bodyFatInput');
+                const bodyFatHidden = document.getElementById('bodyFat');
+                const yesterdayBodyFatInput = document.getElementById('yesterdayBodyFat');
+
+                // 页面加载时，如果有体脂率值，直接显示
+                window.addEventListener('DOMContentLoaded', function() {
+                    const bodyFatValue = parseFloat(bodyFatHidden.value);
+                    if (!isNaN(bodyFatValue)) {
+                        bodyFatInput.value = bodyFatValue.toFixed(1);
+                    }
+                    calculateTotal();
+                });
+
+                bodyFatInput.addEventListener('input', function() {
+                    const value = parseFloat(this.value);
+                    if (!isNaN(value)) {
+                        bodyFatHidden.value = value.toFixed(1);
+                        calculateTotal();
+                    } else {
+                        bodyFatHidden.value = '';
+                        calculateTotal();
+                    }
+                });
+
+                // 监听所有积分字段
+                const pointFields = ['diet1', 'diet2', 'sleep', 'selfControl', 'fitness', 'workPoints', 'studyPoints'];
+                pointFields.forEach(fieldId => {
+                    document.getElementById(fieldId).addEventListener('input', calculateTotal);
+                });
+
+                // 计算今日累计
+                function calculateTotal() {
+                    let total = 0;
+
+                    // 获取所有积分字段的值
+                    pointFields.forEach(fieldId => {
+                        const value = parseFloat(document.getElementById(fieldId).value);
+                        if (!isNaN(value)) {
+                            total += value;
+                        }
+                    });
+
+                    // 加上体脂率积分
+                    const todayBodyFat = parseFloat(bodyFatHidden.value);
+                    const yesterdayBodyFat = parseFloat(yesterdayBodyFatInput.value);
+
+                    if (!isNaN(todayBodyFat) && !isNaN(yesterdayBodyFat) && yesterdayBodyFat > 0) {
+                        const bodyFatPoints = (yesterdayBodyFat - todayBodyFat) * 10;
+                        total += bodyFatPoints;
+                    }
+
+                    // 加上任务积分
+                    const taskPointsElement = document.querySelector('[data-task-points]');
+                    if (taskPointsElement) {
+                        const taskPoints = parseFloat(taskPointsElement.getAttribute('data-task-points'));
+                        if (!isNaN(taskPoints)) {
+                            total += taskPoints;
+                        }
+                    }
+
+                    // 加上个人整洁积分
+                    const groomingPts = parseFloat(document.getElementById('groomingPoints').value);
+                    if (!isNaN(groomingPts)) {
+                        total += groomingPts;
+                    }
+
+                    // 更新今日累计
+                    document.getElementById('dailyTotal').value = total.toFixed(1);
+                }
+            </script>
+
+            <script>
+                // 个人整洁人偶交互
+                (function() {
+                    const parts = document.querySelectorAll('.doll-part');
+                    const countEl = document.getElementById('groomingCount');
+                    const bonusEl = document.getElementById('groomingBonus');
+                    const groomingPointsEl = document.getElementById('groomingPoints');
+
+                    function updateGroomingUI() {
+                        const activeCount = document.querySelectorAll('.doll-part.active').length;
+                        countEl.textContent = activeCount;
+                        if (activeCount === 9) {
+                            bonusEl.style.display = 'inline-block';
+                            groomingPointsEl.value = '0.5';
+                        } else {
+                            bonusEl.style.display = 'none';
+                            groomingPointsEl.value = '0';
+                        }
+                        if (typeof calculateTotal === 'function') {
+                            calculateTotal();
+                        }
+                    }
+
+                    parts.forEach(function(part) {
+                        part.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const partName = this.getAttribute('data-part');
+                            const self = this;
+
+                            fetch('/grooming/toggle', {
+                                method: 'POST',
+                                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                                body: 'part=' + encodeURIComponent(partName)
+                            })
+                            .then(function(res) { return res.json(); })
+                            .then(function(data) {
+                                if (data.success) {
+                                    self.classList.toggle('active');
+                                    updateGroomingUI();
+                                }
+                            })
+                            .catch(function(err) {
+                                console.error('Grooming toggle failed:', err);
+                            });
+                        });
+                    });
+
+                    // 初始化计数
+                    updateGroomingUI();
+                })();
+            </script>
+
+            <!-- 上周统计 -->
+            <div class="weekly-stats" th:if="${lastWeekStats != null and lastWeekStats.recordCount > 0}">
+                <h2>📈 上周统计</h2>
+                <div style="margin-bottom: 20px; padding: 20px; background: white; border-radius: 14px; box-shadow: 0 2px 8px var(--shadow-soft);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                        <span style="font-weight: 600; color: var(--text-dark); font-size: 16px;">总积分</span>
+                        <span style="font-weight: 700; color: var(--sage-dark); font-size: 24px;" th:text="${#numbers.formatDecimal(lastWeekStats.totalPoints, 1, 1)} + ' 分'"></span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; color: var(--text-medium); font-size: 15px; margin-bottom: 8px;">
+                        <span>记录天数</span>
+                        <span th:text="${lastWeekStats.recordCount} + ' 天'"></span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; color: var(--text-medium); font-size: 15px;">
+                        <span>日均积分</span>
+                        <span th:text="${#numbers.formatDecimal(lastWeekStats.dailyAverage, 1, 1)} + ' 分'"></span>
+                    </div>
+                </div>
+
+                <h3 style="font-size: 18px; color: var(--text-dark); margin-bottom: 14px; font-weight: 600;">📊 各项日均值</h3>
+                <div class="week-item" th:each="entry : ${lastWeekStats.averages}">
+                    <span class="week-label" th:text="${entry.key}"></span>
+                    <span class="week-points" th:text="${#numbers.formatDecimal(entry.value, 1, 1)} + ' 分'"></span>
+                </div>
+            </div>
+
+            <div class="weekly-stats" th:if="${lastWeekStats == null or lastWeekStats.recordCount == 0}">
+                <h2>📈 上周统计</h2>
+                <p style="color: var(--text-light); text-align: center; padding: 24px; background: white; border-radius: 12px;">上周暂无记录</p>
+            </div>
+
+            <!-- 明日任务规划区域 -->
+            <div class="weekly-stats" style="margin-top: 28px;">
+                <h2 style="cursor: pointer; user-select: none; display: flex; align-items: center; justify-content: space-between;" onclick="toggleTomorrowTasks()">
+                    <span>📅 规划明日任务</span>
+                    <span id="toggleIcon" style="font-size: 20px; transition: transform 0.3s ease;">▼</span>
+                </h2>
+                <div id="tomorrowTasksSection" style="display: none; margin-top: 20px;">
+                    <div id="tomorrowTasksList" th:if="${tomorrowTasks != null and !tomorrowTasks.isEmpty()}" style="margin-bottom: 18px;">
+                        <div th:each="task, iterStat : ${tomorrowTasks}" th:id="'task-' + ${task.id}" style="padding: 16px 20px; background: white; border-radius: 12px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; transition: all 0.3s ease;">
+                            <span style="color: var(--text-dark);">
+                                <strong th:text="${iterStat.count} + '. '" style="color: var(--sage-dark); margin-right: 10px; font-size: 16px;" class="task-number"></strong>
+                                <span th:text="${task.description}"></span>
+                            </span>
+                            <button th:attr="data-task-id=${task.id}" onclick="deleteTask(event, this.getAttribute('data-task-id'))" style="background: rgba(212, 129, 111, 0.15); color: var(--terracotta); border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.3s ease;">删除</button>
+                        </div>
+                    </div>
+                    <div id="emptyTasksMessage" th:if="${tomorrowTasks == null or tomorrowTasks.isEmpty()}" style="padding: 20px; text-align: center; color: var(--text-light); background: white; border-radius: 12px; margin-bottom: 18px;">
+                        明天还没有任务
+                    </div>
+                    <form id="addTaskForm" onsubmit="addTask(event)" style="display: flex; flex-direction: column; gap: 12px;">
+                        <div style="display: flex; gap: 12px;">
+                            <textarea id="taskDescription" name="description" placeholder="输入任务描述..." required style="flex: 1; padding: 16px 18px; border: 2px solid rgba(139, 157, 131, 0.15); border-radius: 12px; font-size: 16px; min-height: 56px; max-height: 200px; resize: vertical; font-family: 'DM Sans', sans-serif;"></textarea>
+                            <div style="display: flex; flex-direction: column; gap: 8px; align-self: flex-start;">
+                                <select id="taskTargetDate" name="targetDate" style="padding: 12px 16px; border: 2px solid rgba(139, 157, 131, 0.15); border-radius: 12px; font-size: 15px; font-family: 'DM Sans', sans-serif; background: white; color: var(--text-dark); cursor: pointer; min-width: 120px;">
+                                    <option value="today">今天</option>
+                                    <option value="tomorrow" selected>明天</option>
+                                </select>
+                                <input type="number" id="taskPoints" name="points" placeholder="积分 (默认0.1)" step="0.1" min="0.1" style="padding: 12px 16px; border: 2px solid rgba(139, 157, 131, 0.15); border-radius: 12px; font-size: 15px; font-family: 'DM Sans', sans-serif; background: white; color: var(--text-dark); min-width: 120px;">
+                                <button type="submit" style="background: linear-gradient(135deg, var(--sage) 0%, var(--sage-dark) 100%); color: white; padding: 12px 24px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.3s ease;">添加任务</button>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="taskMessage" style="margin-top: 12px; padding: 12px; border-radius: 10px; display: none; font-weight: 500;"></div>
+
+                    <!-- 历史任务选择区域（仅周五周六显示） -->
+                    <div id="historyTasksSection" style="margin-top: 24px; display: none;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <h3 style="font-size: 18px; color: var(--text-dark); font-weight: 600;">📋 从历史任务中选择</h3>
+                            <button onclick="toggleHistoryTasks()" style="background: rgba(139, 157, 131, 0.15); color: var(--sage-dark); border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600;">
+                                <span id="historyToggleText">展开</span>
+                            </button>
+                        </div>
+                        <div id="historyTasksList" style="display: none;">
+                            <div id="historyTasksContainer"></div>
+                            <button id="addSelectedTasksBtn" onclick="addSelectedHistoryTasks()" style="background: linear-gradient(135deg, var(--sage) 0%, var(--sage-dark) 100%); color: white; padding: 14px 32px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 16px; transition: all 0.3s ease;">
+                                添加选中任务到明天
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="history" th:if="${records != null and !records.isEmpty()}">
+                <h2>📊 每日记录</h2>
+                <div class="record" th:each="record : ${records}">
+                    <div class="record-date" th:text="${record.date}"></div>
+                    <div class="record-items">
+                        <div th:if="${record.diet1 != null and !record.diet1.isEmpty()}">💧 饮食1: <span th:text="${record.diet1}"></span></div>
+                        <div th:if="${record.diet2 != null and !record.diet2.isEmpty()}">🥗 饮食2: <span th:text="${record.diet2}"></span></div>
+                        <div th:if="${record.sleep != null and !record.sleep.isEmpty()}">😴 睡眠: <span th:text="${record.sleep}"></span></div>
+                        <div th:if="${record.selfControl != null and !record.selfControl.isEmpty()}">🧘 清心寡欲: <span th:text="${record.selfControl}"></span></div>
+                        <div th:if="${record.fitness != null and !record.fitness.isEmpty()}">💪 健身: <span th:text="${record.fitness}"></span></div>
+                        <div th:if="${record.workPoints != null and !record.workPoints.isEmpty()}">💼 工作积分: <span th:text="${record.workPoints}"></span></div>
+                        <div th:if="${record.studyPoints != null and !record.studyPoints.isEmpty()}">📚 学习积分: <span th:text="${record.studyPoints}"></span></div>
+                        <div th:if="${record.bodyFat != null and !record.bodyFat.isEmpty() and record.bodyFatPercentage != null}">
+                            ⚖️ 体脂率: <span th:text="${#numbers.formatDecimal(record.bodyFatPercentage, 1, 1)} + '%'"></span>
+                            <small style="color: var(--text-light);" th:if="${record.bodyFatPoints != null}">
+                                (<span th:text="${#numbers.formatDecimal(record.bodyFatPoints, 1, 1)}"></span> 分)
+                            </small>
+                        </div>
+                        <div th:if="${groomingCountMap != null and groomingCountMap.containsKey(record.date)}">
+                            🧍 个人整洁: <span th:text="${groomingCountMap.get(record.date)}"></span>/9
+                            <small style="color: var(--sage-dark); font-weight: 600;" th:if="${groomingPointsMap.get(record.date) > 0}">
+                                (✨ +0.5 分)
+                            </small>
+                        </div>
+                        <div th:if="${record.dailyTotal != null and !record.dailyTotal.isEmpty()}" style="font-weight: 700; color: var(--sage-dark); margin-top: 10px; font-size: 16px;">
+                            📊 今日累计: <span th:text="${record.dailyTotal}"></span> 分
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                function toggleTodayTask(checkbox) {
+                    const taskId = checkbox.getAttribute('data-task-id');
+                    const taskDiv = document.getElementById('today-task-' + taskId);
+                    const taskText = taskDiv.querySelector('.task-text');
+
+                    // 发送 AJAX 请求
+                    fetch('/tasks/toggle', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: 'taskId=' + encodeURIComponent(taskId)
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            return response.text();
+                        }
+                        throw new Error('Network response was not ok');
+                    })
+                    .then(() => {
+                        // 更新任务文本样式
+                        if (checkbox.checked) {
+                            taskText.style.textDecoration = 'line-through';
+                            taskText.style.color = '#999';
+                        } else {
+                            taskText.style.textDecoration = 'none';
+                            taskText.style.color = '#333';
+                        }
+
+                        // 更新已完成任务数量和积分
+                        const allCheckboxes = document.querySelectorAll('#todayTasksContainer input[type="checkbox"]');
+                        const completedCount = Array.from(allCheckboxes).filter(cb => cb.checked).length;
+                        const totalCount = allCheckboxes.length;
+
+                        document.getElementById('completedCount').textContent = completedCount;
+
+                        // 计算新的任务积分（累加每个已完成任务的积分）
+                        const newTaskPoints = Array.from(allCheckboxes)
+                            .filter(cb => cb.checked)
+                            .reduce((sum, cb) => {
+                                const points = parseFloat(cb.getAttribute('data-task-points')) || 0.1;
+                                return sum + points;
+                            }, 0);
+
+                        document.getElementById('taskPointsValue').textContent = newTaskPoints.toFixed(1) + ' 分';
+
+                        // 更新 data-task-points 属性
+                        const taskPointsDisplay = document.getElementById('taskPointsDisplay');
+                        taskPointsDisplay.setAttribute('data-task-points', newTaskPoints);
+
+                        // 重新计算今日累计
+                        calculateTotal();
+                    })
+                    .catch(error => {
+                        console.error('Error toggling task:', error);
+                        // 如果出错，恢复复选框状态
+                        checkbox.checked = !checkbox.checked;
+                    });
+                }
+
+                function toggleTomorrowTasks() {
+                    const section = document.getElementById('tomorrowTasksSection');
+                    const icon = document.getElementById('toggleIcon');
+                    if (section.style.display === 'none') {
+                        section.style.display = 'block';
+                        icon.textContent = '▲';
+                        icon.style.transform = 'rotate(180deg)';
+                    } else {
+                        section.style.display = 'none';
+                        icon.textContent = '▼';
+                        icon.style.transform = 'rotate(0deg)';
+                    }
+                }
+
+                function addTask(event) {
+                    event.preventDefault();
+
+                    const form = event.target;
+                    const description = document.getElementById('taskDescription').value;
+                    const targetDate = document.getElementById('taskTargetDate').value;
+                    const points = document.getElementById('taskPoints').value;
+                    const messageDiv = document.getElementById('taskMessage');
+
+                    let requestBody = 'description=' + encodeURIComponent(description) + '&targetDate=' + encodeURIComponent(targetDate);
+                    if (points && parseFloat(points) > 0) {
+                        requestBody += '&points=' + encodeURIComponent(points);
+                    }
+
+                    fetch('/tasks/add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: requestBody
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('taskDescription').value = '';
+                            document.getElementById('taskPoints').value = '';
+                            document.getElementById('taskDescription').focus();
+
+                            messageDiv.textContent = data.message;
+                            messageDiv.style.display = 'block';
+                            messageDiv.style.background = 'rgba(139, 157, 131, 0.12)';
+                            messageDiv.style.color = 'var(--sage-dark)';
+
+                            setTimeout(() => {
+                                messageDiv.style.display = 'none';
+                            }, 2000);
+
+                            const emptyMessage = document.getElementById('emptyTasksMessage');
+                            if (emptyMessage) {
+                                emptyMessage.style.display = 'none';
+                            }
+
+                            let tasksList = document.getElementById('tomorrowTasksList');
+                            if (!tasksList) {
+                                tasksList = document.createElement('div');
+                                tasksList.id = 'tomorrowTasksList';
+                                tasksList.style.marginBottom = '18px';
+                                const section = document.getElementById('tomorrowTasksSection');
+                                section.insertBefore(tasksList, document.getElementById('addTaskForm'));
+                            }
+
+                            const currentTaskCount = tasksList.children.length + 1;
+
+                            const taskDiv = document.createElement('div');
+                            taskDiv.id = 'task-' + data.taskId;
+                            taskDiv.style.cssText = 'padding: 16px 20px; background: white; border-radius: 12px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; transition: all 0.3s ease;';
+
+                            const pointsDisplay = (data.points && data.points !== 0.1) ? `<span style="margin-left: 8px; color: var(--sage-dark); font-size: 14px; font-weight: 600;">(⭐${data.points}分)</span>` : '';
+
+                            taskDiv.innerHTML = `
+                                <span style="color: var(--text-dark);">
+                                    <strong style="color: var(--sage-dark); margin-right: 10px; font-size: 16px;" class="task-number">${currentTaskCount}. </strong>
+                                    <span>${description}</span>
+                                    ${pointsDisplay}
+                                </span>
+                                <button onclick="deleteTask(event, '${data.taskId}')" style="background: rgba(212, 129, 111, 0.15); color: var(--terracotta); border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.3s ease;">删除</button>
+                            `;
+                            tasksList.appendChild(taskDiv);
+
+                        } else {
+                            messageDiv.textContent = data.message;
+                            messageDiv.style.display = 'block';
+                            messageDiv.style.background = 'rgba(212, 129, 111, 0.12)';
+                            messageDiv.style.color = 'var(--terracotta)';
+                        }
+                    })
+                    .catch(error => {
+                        messageDiv.textContent = '添加任务失败: ' + error.message;
+                        messageDiv.style.display = 'block';
+                        messageDiv.style.background = 'rgba(212, 129, 111, 0.12)';
+                        messageDiv.style.color = 'var(--terracotta)';
+                    });
+                }
+
+                function deleteTask(event, taskId) {
+                    event.preventDefault();
+
+                    const messageDiv = document.getElementById('taskMessage');
+
+                    fetch('/tasks/delete', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: 'taskId=' + encodeURIComponent(taskId)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const taskElement = document.getElementById('task-' + taskId);
+                            if (taskElement) {
+                                taskElement.remove();
+                            }
+
+                            const tasksList = document.getElementById('tomorrowTasksList');
+                            if (tasksList) {
+                                const taskNumbers = tasksList.querySelectorAll('.task-number');
+                                taskNumbers.forEach((numberElement, index) => {
+                                    numberElement.textContent = (index + 1) + '. ';
+                                });
+
+                                if (tasksList.children.length === 0) {
+                                    tasksList.remove();
+                                    const emptyMessage = document.getElementById('emptyTasksMessage');
+                                    if (emptyMessage) {
+                                        emptyMessage.style.display = 'block';
+                                    }
+                                }
+                            }
+
+                            messageDiv.textContent = data.message;
+                            messageDiv.style.display = 'block';
+                            messageDiv.style.background = 'rgba(139, 157, 131, 0.12)';
+                            messageDiv.style.color = 'var(--sage-dark)';
+
+                            // 如果历史任务列表是展开状态，重新加载以显示恢复的任务
+                            const historyTasksList = document.getElementById('historyTasksList');
+                            if (historyTasksList && historyTasksList.style.display !== 'none') {
+                                loadHistoryTasks();
+                            }
+
+                            setTimeout(() => {
+                                messageDiv.style.display = 'none';
+                            }, 2000);
+
+                        } else {
+                            messageDiv.textContent = data.message;
+                            messageDiv.style.display = 'block';
+                            messageDiv.style.background = 'rgba(212, 129, 111, 0.12)';
+                            messageDiv.style.color = 'var(--terracotta)';
+                        }
+                    })
+                    .catch(error => {
+                        messageDiv.textContent = '删除任务失败: ' + error.message;
+                        messageDiv.style.display = 'block';
+                        messageDiv.style.background = 'rgba(212, 129, 111, 0.12)';
+                        messageDiv.style.color = 'var(--terracotta)';
+                    });
+                }
+
+                // ========== 历史任务管理 ==========
+
+                // 页面加载时显示历史任务功能（常驻显示）
+                window.addEventListener('DOMContentLoaded', function() {
+                    document.getElementById('historyTasksSection').style.display = 'block';
+                });
+
+                function toggleHistoryTasks() {
+                    const listDiv = document.getElementById('historyTasksList');
+                    const toggleText = document.getElementById('historyToggleText');
+
+                    if (listDiv.style.display === 'none') {
+                        // 加载历史任务
+                        loadHistoryTasks();
+                        listDiv.style.display = 'block';
+                        toggleText.textContent = '收起';
+                    } else {
+                        listDiv.style.display = 'none';
+                        toggleText.textContent = '展开';
+                    }
+                }
+
+                function loadHistoryTasks() {
+                    fetch('/tasks/uncompleted-history')
+                        .then(response => response.json())
+                        .then(tasks => {
+                            const container = document.getElementById('historyTasksContainer');
+
+                            if (tasks.length === 0) {
+                                container.innerHTML = '<div style="padding: 24px; text-align: center; color: var(--text-light); background: white; border-radius: 12px;">没有历史未完成任务</div>';
+                                return;
+                            }
+
+                            container.innerHTML = tasks.map(task => {
+                                // 解析ISO格式日期字符串 "2026-02-01"
+                                const dateParts = task.date.split('-');
+                                const month = parseInt(dateParts[1]);  // 月份
+                                const day = parseInt(dateParts[2]);    // 日期
+                                const dateStr = `${month}月${day}日`;
+                                const points = task.points || 0.1;
+
+                                return `
+                                    <div style="padding: 16px 20px; background: white; border-radius: 12px; margin-bottom: 12px; display: flex; align-items: center; gap: 14px; border: 2px solid rgba(139, 157, 131, 0.1); transition: all 0.3s ease;">
+                                        <input type="checkbox" class="history-task-checkbox" data-task-id="${task.id}" style="width: 20px; height: 20px; cursor: pointer; accent-color: var(--sage);">
+                                        <div style="flex: 1;">
+                                            <div style="color: var(--text-dark); font-weight: 500; margin-bottom: 4px;">${task.description}</div>
+                                            <div style="color: var(--text-medium); font-size: 13px;">
+                                                <span>📅 ${dateStr}</span>
+                                                <span style="margin-left: 12px;">⭐ ${points} 分</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('');
+                        })
+                        .catch(error => {
+                            console.error('加载历史任务失败:', error);
+                        });
+                }
+
+                function addSelectedHistoryTasks() {
+                    const checkboxes = document.querySelectorAll('.history-task-checkbox:checked');
+
+                    if (checkboxes.length === 0) {
+                        alert('请先选择要添加的任务');
+                        return;
+                    }
+
+                    const tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+                    const promises = Array.from(checkboxes).map(checkbox => {
+                        const taskId = checkbox.getAttribute('data-task-id');
+                        return fetch('/tasks/copy-to-date', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                            body: `taskId=${encodeURIComponent(taskId)}&targetDate=${tomorrowStr}`
+                        }).then(response => response.json());
+                    });
+
+                    Promise.all(promises)
+                        .then(results => {
+                            const successCount = results.filter(r => r.success).length;
+                            const messageDiv = document.getElementById('taskMessage');
+                            messageDiv.textContent = `成功添加 ${successCount} 个任务到明天！`;
+                            messageDiv.style.display = 'block';
+                            messageDiv.style.background = 'rgba(139, 157, 131, 0.12)';
+                            messageDiv.style.color = 'var(--sage-dark)';
+
+                            // 动态添加任务到明日任务列表
+                            const successResults = results.filter(r => r.success);
+                            successResults.forEach(result => {
+                                addTaskToTomorrowList(result);
+                            });
+
+                            // 重新加载历史任务列表
+                            loadHistoryTasks();
+
+                            // 3秒后隐藏消息
+                            setTimeout(() => {
+                                messageDiv.style.display = 'none';
+                            }, 3000);
+                        })
+                        .catch(error => {
+                            alert('添加任务失败: ' + error.message);
+                        });
+                }
+
+                function addTaskToTomorrowList(result) {
+                    // 获取或创建明日任务列表容器
+                    let tasksList = document.getElementById('tomorrowTasksList');
+                    const emptyMessage = document.getElementById('emptyTasksMessage');
+
+                    if (emptyMessage) {
+                        emptyMessage.style.display = 'none';
+                    }
+
+                    if (!tasksList) {
+                        tasksList = document.createElement('div');
+                        tasksList.id = 'tomorrowTasksList';
+                        tasksList.style.marginBottom = '18px';
+                        const section = document.getElementById('tomorrowTasksSection');
+                        section.insertBefore(tasksList, document.getElementById('addTaskForm'));
+                    }
+
+                    // 获取当前任务数量
+                    const currentTaskCount = tasksList.children.length + 1;
+
+                    // 创建任务DOM元素
+                    const taskDiv = document.createElement('div');
+                    taskDiv.id = 'task-' + result.taskId;
+                    taskDiv.style.cssText = 'padding: 16px 20px; background: white; border-radius: 12px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; transition: all 0.3s ease;';
+
+                    // 从历史任务容器中找到对应的任务描述
+                    const historyCheckbox = document.querySelector(`.history-task-checkbox[data-task-id="${result.taskId}"]`);
+                    let description = '任务';
+                    if (historyCheckbox) {
+                        const taskDiv = historyCheckbox.closest('div[style*="padding: 16px"]');
+                        if (taskDiv) {
+                            const descDiv = taskDiv.querySelector('div[style*="font-weight: 500"]');
+                            if (descDiv) {
+                                description = descDiv.textContent;
+                            }
+                        }
+                    }
+
+                    taskDiv.innerHTML = `
+                        <span style="color: var(--text-dark);">
+                            <strong style="color: var(--sage-dark); margin-right: 10px; font-size: 16px;" class="task-number">${currentTaskCount}. </strong>
+                            <span>${description}</span>
+                        </span>
+                        <button onclick="deleteTask(event, '${result.taskId}')" style="background: rgba(212, 129, 111, 0.15); color: var(--terracotta); border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.3s ease;">删除</button>
+                    `;
+                    tasksList.appendChild(taskDiv);
+                }
+            </script>
+        </div>
+    </div>
+</body>
+</html>

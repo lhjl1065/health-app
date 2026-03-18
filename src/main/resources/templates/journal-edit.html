@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${isNew ? '写新日记' : '编辑日记'}">编辑日记</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- EasyMDE Markdown Editor -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+    <style>
+        :root {
+            --cream: #FAF7F2;
+            --sage: #8B9D83;
+            --sage-dark: #6B7D63;
+            --terracotta: #D4816F;
+            --soft-white: #FFFFFF;
+            --text-dark: #2C2C2C;
+            --text-medium: #5A5A5A;
+            --text-light: #8E8E8E;
+            --shadow-soft: rgba(139, 111, 71, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(165deg, #FAF7F2 0%, #F0EBE3 50%, #E8DFD0 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: var(--text-dark);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--soft-white);
+            border-radius: 24px;
+            padding: 50px;
+            box-shadow: 0 20px 60px var(--shadow-soft);
+            border: 1px solid rgba(139, 111, 71, 0.06);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            color: var(--text-dark);
+            font-size: 36px;
+            font-weight: 700;
+        }
+
+        .back-link {
+            padding: 12px 24px;
+            background: rgba(139, 157, 131, 0.15);
+            color: var(--sage-dark);
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background: rgba(139, 157, 131, 0.25);
+        }
+
+        .form-group {
+            margin-bottom: 28px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--text-dark);
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        input[type="text"], input[type="date"] {
+            width: 100%;
+            padding: 16px 18px;
+            border: 2px solid rgba(139, 157, 131, 0.15);
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: 'DM Sans', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus, input[type="date"]:focus {
+            outline: none;
+            border-color: var(--sage);
+            box-shadow: 0 0 0 4px rgba(139, 157, 131, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--sage) 0%, var(--sage-dark) 100%);
+            color: var(--soft-white);
+            padding: 18px 40px;
+            border: none;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(139, 157, 131, 0.25);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(139, 157, 131, 0.35);
+        }
+
+        /* EasyMDE 自定义样式 */
+        .EasyMDEContainer {
+            margin-bottom: 28px;
+        }
+
+        .EasyMDEContainer .CodeMirror {
+            border: 2px solid rgba(139, 157, 131, 0.15);
+            border-radius: 12px;
+            font-size: 16px;
+            min-height: 400px;
+        }
+
+        .EasyMDEContainer .CodeMirror:focus-within {
+            border-color: var(--sage);
+            box-shadow: 0 0 0 4px rgba(139, 157, 131, 0.1);
+        }
+
+        .EasyMDEContainer .editor-toolbar {
+            border: none;
+            border-bottom: 2px solid rgba(139, 157, 131, 0.15);
+            border-radius: 12px 12px 0 0;
+            background: rgba(139, 157, 131, 0.05);
+        }
+
+        .EasyMDEContainer .editor-toolbar button {
+            color: var(--sage-dark) !important;
+        }
+
+        .EasyMDEContainer .editor-toolbar button:hover {
+            background: rgba(139, 157, 131, 0.15);
+            border-color: transparent;
+        }
+
+        .EasyMDEContainer .editor-toolbar.fullscreen {
+            background: var(--soft-white);
+        }
+
+        small {
+            color: var(--text-light);
+            font-size: 14px;
+            display: block;
+            margin-top: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .card {
+                padding: 30px 24px;
+            }
+            h1 {
+                font-size: 28px;
+            }
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <h1 th:text="${isNew ? '✍️ 写新日记' : '✏️ 编辑日记'}">编辑日记</h1>
+                <a href="/journal" class="back-link">← 返回列表</a>
+            </div>
+
+            <form action="/journal/save" method="post">
+                <input type="hidden" name="id" th:value="${journal.id}">
+
+                <div class="form-group">
+                    <label for="date">📅 日期</label>
+                    <input type="date" id="date" name="date" required th:value="${journal.date}">
+                </div>
+
+                <div class="form-group">
+                    <label for="title">📝 标题</label>
+                    <input type="text" id="title" name="title" placeholder="给这篇日记起个标题..." required th:value="${journal.title}">
+                </div>
+
+                <div class="form-group">
+                    <label for="tags">🏷️ 标签</label>
+                    <input type="text" id="tags" name="tags" placeholder="用逗号分隔，例如：工作, 生活, 感悟" th:value="${#strings.listJoin(journal.tags, ', ')}">
+                    <small>标签可以帮助你更好地分类和查找日记</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="content">✨ 内容</label>
+                    <textarea id="content" name="content" th:text="${journal.content}"></textarea>
+                    <small>支持Markdown语法：**粗体**、*斜体*、# 标题、- 列表等</small>
+                </div>
+
+                <button type="submit" class="btn">💾 保存日记</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 初始化 EasyMDE Markdown 编辑器
+        const easyMDE = new EasyMDE({
+            element: document.getElementById('content'),
+            placeholder: '开始记录你的想法...',
+            spellChecker: false,
+            autofocus: false,
+            toolbar: [
+                'bold', 'italic', 'heading', '|',
+                'quote', 'unordered-list', 'ordered-list', '|',
+                'link', 'image', '|',
+                'preview', 'side-by-side', 'fullscreen', '|',
+                'guide'
+            ],
+            status: ['lines', 'words', 'cursor'],
+            minHeight: '400px',
+            maxHeight: '800px',
+            renderingConfig: {
+                singleLineBreaks: false,
+                codeSyntaxHighlighting: true,
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日记本 · Journal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cream: #FAF7F2;
+            --sage: #8B9D83;
+            --sage-dark: #6B7D63;
+            --terracotta: #D4816F;
+            --terracotta-light: #E8A896;
+            --warm-brown: #8B6F47;
+            --soft-white: #FFFFFF;
+            --text-dark: #2C2C2C;
+            --text-medium: #5A5A5A;
+            --text-light: #8E8E8E;
+            --shadow-soft: rgba(139, 111, 71, 0.08);
+            --shadow-medium: rgba(139, 111, 71, 0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(165deg, #FAF7F2 0%, #F0EBE3 50%, #E8DFD0 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: var(--text-dark);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: var(--soft-white);
+            border-radius: 24px;
+            padding: 40px 50px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px var(--shadow-soft);
+            border: 1px solid rgba(139, 111, 71, 0.06);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            color: var(--text-dark);
+            font-size: 42px;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 16px;
+        }
+
+        .nav-link {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--sage) 0%, var(--sage-dark) 100%);
+            color: var(--soft-white);
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 15px;
+        }
+
+        .nav-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(139, 157, 131, 0.3);
+        }
+
+        .nav-link.secondary {
+            background: linear-gradient(135deg, var(--terracotta-light) 0%, var(--terracotta) 100%);
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 14px 18px;
+            border: 2px solid rgba(139, 157, 131, 0.15);
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .search-btn {
+            padding: 14px 28px;
+            background: linear-gradient(135deg, var(--sage) 0%, var(--sage-dark) 100%);
+            color: var(--soft-white);
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tag {
+            padding: 8px 16px;
+            background: rgba(139, 157, 131, 0.12);
+            color: var(--sage-dark);
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .tag:hover {
+            background: rgba(139, 157, 131, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .tag.active {
+            background: var(--sage);
+            color: var(--soft-white);
+        }
+
+        .journal-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 24px;
+        }
+
+        .journal-card {
+            background: var(--soft-white);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 24px var(--shadow-soft);
+            border: 1px solid rgba(139, 111, 71, 0.06);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .journal-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 36px var(--shadow-medium);
+        }
+
+        .journal-date {
+            color: var(--text-light);
+            font-size: 14px;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .journal-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+
+        .journal-preview {
+            color: var(--text-medium);
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 16px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .journal-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .journal-tag {
+            padding: 4px 12px;
+            background: rgba(139, 157, 131, 0.1);
+            color: var(--sage-dark);
+            border-radius: 12px;
+            font-size: 13px;
+        }
+
+        .journal-actions {
+            display: flex;
+            gap: 10px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(139, 157, 131, 0.1);
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .action-btn.edit {
+            background: rgba(139, 157, 131, 0.15);
+            color: var(--sage-dark);
+        }
+
+        .action-btn.delete {
+            background: rgba(212, 129, 111, 0.15);
+            color: var(--terracotta);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-light);
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state-text {
+            font-size: 18px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 30px 24px;
+            }
+            h1 {
+                font-size: 32px;
+            }
+            .header-top {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 20px;
+            }
+            .journal-list {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .alert {
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: rgba(139, 157, 131, 0.12);
+            color: var(--sage-dark);
+            border-left: 4px solid var(--sage);
+        }
+
+        .alert-error {
+            background: rgba(212, 129, 111, 0.12);
+            color: var(--terracotta);
+            border-left: 4px solid var(--terracotta);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-top">
+                <h1>📔 我的日记本</h1>
+                <div class="nav-links">
+                    <a href="/" class="nav-link secondary">返回健康记录</a>
+                    <a href="/journal/new" class="nav-link">✍️ 写新日记</a>
+                </div>
+            </div>
+
+            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+            <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+            <form action="/journal" method="get" class="search-bar">
+                <input type="text" name="keyword" class="search-input" placeholder="搜索日记..." th:value="${keyword}">
+                <button type="submit" class="search-btn">🔍 搜索</button>
+            </form>
+
+            <div class="tags-container" th:if="${allTags != null and !allTags.isEmpty()}">
+                <a href="/journal" class="tag" th:classappend="${currentTag == null ? 'active' : ''}">全部</a>
+                <a th:each="tag : ${allTags}"
+                   th:href="@{/journal(tag=${tag})}"
+                   class="tag"
+                   th:classappend="${currentTag == tag ? 'active' : ''}"
+                   th:text="'#' + ${tag}"></a>
+            </div>
+        </div>
+
+        <div class="journal-list" th:if="${journals != null and !journals.isEmpty()}">
+            <div class="journal-card" th:each="journal : ${journals}" th:attr="data-journal-id=${journal.id}" onclick="window.location.href='/journal/view/' + this.getAttribute('data-journal-id')">
+                <div class="journal-date" th:text="${journal.date}"></div>
+                <div class="journal-title" th:text="${journal.title}"></div>
+                <div class="journal-preview" th:text="${journal.content}"></div>
+                <div class="journal-tags" th:if="${journal.tags != null and !journal.tags.isEmpty()}">
+                    <span class="journal-tag" th:each="tag : ${journal.tags}" th:text="'#' + ${tag}"></span>
+                </div>
+                <div class="journal-actions" onclick="event.stopPropagation()">
+                    <a th:href="@{/journal/edit/{id}(id=${journal.id})}" class="action-btn edit">编辑</a>
+                    <form th:action="@{/journal/delete/{id}(id=${journal.id})}" method="post" style="display: inline;" onsubmit="return confirm('确定要删除这篇日记吗？')">
+                        <button type="submit" class="action-btn delete">删除</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="empty-state" th:if="${journals == null or journals.isEmpty()}">
+            <div class="empty-state-icon">📝</div>
+            <div class="empty-state-text">还没有日记，开始记录你的生活吧！</div>
+            <a href="/journal/new" class="nav-link">✍️ 写第一篇日记</a>
+        </div>
+    </div>
+</body>
+</html>

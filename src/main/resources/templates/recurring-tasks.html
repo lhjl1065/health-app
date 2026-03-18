@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>重复任务管理</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cream: #FAF7F2;
+            --sage: #8B9D83;
+            --sage-dark: #6B7D63;
+            --terracotta: #D4816F;
+            --soft-white: #FFFFFF;
+            --text-dark: #2C2C2C;
+            --text-medium: #5A5A5A;
+            --text-light: #8E8E8E;
+            --shadow-soft: rgba(139, 111, 71, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(165deg, #FAF7F2 0%, #F0EBE3 50%, #E8DFD0 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: var(--text-dark);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--soft-white);
+            border-radius: 24px;
+            padding: 50px;
+            box-shadow: 0 20px 60px var(--shadow-soft);
+            margin-bottom: 30px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            color: var(--text-dark);
+            font-size: 36px;
+            font-weight: 700;
+        }
+
+        .back-link {
+            padding: 12px 24px;
+            background: rgba(139, 157, 131, 0.15);
+            color: var(--sage-dark);
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background: rgba(139, 157, 131, 0.25);
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--text-dark);
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        input[type="text"], select {
+            width: 100%;
+            padding: 16px 18px;
+            border: 2px solid rgba(139, 157, 131, 0.15);
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: 'DM Sans', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: var(--sage);
+            box-shadow: 0 0 0 4px rgba(139, 157, 131, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--sage) 0%, var(--sage-dark) 100%);
+            color: var(--soft-white);
+            padding: 18px 40px;
+            border: none;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(139, 157, 131, 0.25);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(139, 157, 131, 0.35);
+        }
+
+        .task-list {
+            margin-top: 40px;
+        }
+
+        .task-item {
+            padding: 20px;
+            background: rgba(250, 247, 242, 0.6);
+            border-radius: 16px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(139, 157, 131, 0.1);
+        }
+
+        .task-info {
+            flex: 1;
+        }
+
+        .task-desc {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .task-schedule {
+            font-size: 14px;
+            color: var(--text-medium);
+        }
+
+        .delete-btn {
+            padding: 10px 20px;
+            background: rgba(212, 129, 111, 0.15);
+            color: var(--terracotta);
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            background: rgba(212, 129, 111, 0.25);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-light);
+        }
+
+        .alert {
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: rgba(139, 157, 131, 0.12);
+            color: var(--sage-dark);
+            border-left: 4px solid var(--sage);
+        }
+
+        .alert-error {
+            background: rgba(212, 129, 111, 0.12);
+            color: var(--terracotta);
+            border-left: 4px solid var(--terracotta);
+        }
+
+        @media (max-width: 768px) {
+            .card {
+                padding: 30px 24px;
+            }
+            h1 {
+                font-size: 28px;
+            }
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <h1>🔄 重复任务管理</h1>
+                <a href="/" class="back-link">← 返回首页</a>
+            </div>
+
+            <div id="message" style="display: none;"></div>
+
+            <form id="addRecurringTaskForm" onsubmit="addRecurringTask(event)">
+                <div class="form-group">
+                    <label for="description">📝 任务描述</label>
+                    <input type="text" id="description" name="description" placeholder="例如：打扫卫生、洗衣服、理发..." required>
+                </div>
+
+                <div class="form-group">
+                    <label for="recurrenceType">🔁 重复类型</label>
+                    <select id="recurrenceType" name="recurrenceType" onchange="updateDayOptions()" required>
+                        <option value="">请选择</option>
+                        <option value="WEEKLY">每周重复</option>
+                        <option value="MONTHLY">每月重复</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="dayGroup" style="display: none;">
+                    <label for="recurrenceDay" id="dayLabel">📅 重复日期</label>
+                    <select id="recurrenceDay" name="recurrenceDay">
+                        <!-- 动态生成选项 -->
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="points">⭐ 任务积分</label>
+                    <input type="number" id="points" name="points" step="0.1" min="0.1" value="0.1" placeholder="默认0.1分" required style="width: 100%; padding: 16px 18px; border: 2px solid rgba(139, 157, 131, 0.15); border-radius: 12px; font-size: 16px;">
+                    <small style="display: block; margin-top: 8px; color: var(--text-medium); font-size: 14px;">
+                        简单任务0.1分，中等任务0.5分，困难任务1.0分
+                    </small>
+                </div>
+
+                <button type="submit" class="btn">➕ 添加重复任务</button>
+            </form>
+
+            <div class="task-list">
+                <h2 style="font-size: 24px; margin-bottom: 20px; color: var(--text-dark);">当前重复任务</h2>
+                <div id="taskListContainer">
+                    <div th:if="${recurringTasks != null and !recurringTasks.isEmpty()}">
+                        <div class="task-item" th:each="task : ${recurringTasks}">
+                            <div class="task-info">
+                                <div class="task-desc" th:text="${task.description}"></div>
+                                <div class="task-schedule">
+                                    <span th:if="${task.recurrenceType.name() == 'WEEKLY'}">
+                                        每周
+                                        <span th:switch="${task.recurrenceDay}">
+                                            <span th:case="1">周一</span>
+                                            <span th:case="2">周二</span>
+                                            <span th:case="3">周三</span>
+                                            <span th:case="4">周四</span>
+                                            <span th:case="5">周五</span>
+                                            <span th:case="6">周六</span>
+                                            <span th:case="7">周日</span>
+                                        </span>
+                                    </span>
+                                    <span th:if="${task.recurrenceType.name() == 'MONTHLY'}">
+                                        每月 <span th:text="${task.recurrenceDay}"></span> 号
+                                    </span>
+                                    <span style="margin-left: 12px; color: var(--sage-dark); font-weight: 600;">
+                                        ⭐ <span th:text="${task.points != null ? task.points : 0.1}"></span> 分
+                                    </span>
+                                </div>
+                            </div>
+                            <button class="delete-btn" th:attr="data-task-id=${task.id}" onclick="deleteRecurringTask(this.getAttribute('data-task-id'))">删除</button>
+                        </div>
+                    </div>
+                    <div th:if="${recurringTasks == null or recurringTasks.isEmpty()}" class="empty-state">
+                        <div style="font-size: 48px; margin-bottom: 16px;">📋</div>
+                        <div style="font-size: 16px;">还没有重复任务，添加一个吧！</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateDayOptions() {
+            const type = document.getElementById('recurrenceType').value;
+            const dayGroup = document.getElementById('dayGroup');
+            const daySelect = document.getElementById('recurrenceDay');
+            const dayLabel = document.getElementById('dayLabel');
+
+            if (!type) {
+                dayGroup.style.display = 'none';
+                return;
+            }
+
+            dayGroup.style.display = 'block';
+            daySelect.innerHTML = '';
+
+            if (type === 'WEEKLY') {
+                dayLabel.textContent = '📅 每周几';
+                const days = [
+                    {value: 1, label: '周一'},
+                    {value: 2, label: '周二'},
+                    {value: 3, label: '周三'},
+                    {value: 4, label: '周四'},
+                    {value: 5, label: '周五'},
+                    {value: 6, label: '周六'},
+                    {value: 7, label: '周日'}
+                ];
+                days.forEach(day => {
+                    const option = document.createElement('option');
+                    option.value = day.value;
+                    option.textContent = day.label;
+                    daySelect.appendChild(option);
+                });
+            } else if (type === 'MONTHLY') {
+                dayLabel.textContent = '📅 每月几号';
+                for (let i = 1; i <= 31; i++) {
+                    const option = document.createElement('option');
+                    option.value = i;
+                    option.textContent = i + ' 号';
+                    daySelect.appendChild(option);
+                }
+            }
+        }
+
+        function addRecurringTask(event) {
+            event.preventDefault();
+
+            const form = event.target;
+            const formData = new FormData(form);
+
+            fetch('/recurring-tasks/add', {
+                method: 'POST',
+                body: new URLSearchParams(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showMessage('添加失败: ' + error.message, 'error');
+            });
+        }
+
+        function deleteRecurringTask(taskId) {
+            if (!confirm('确定要删除这个重复任务吗？')) {
+                return;
+            }
+
+            fetch('/recurring-tasks/delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'taskId=' + encodeURIComponent(taskId)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showMessage('删除失败: ' + error.message, 'error');
+            });
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            messageDiv.className = 'alert alert-' + type;
+            messageDiv.style.display = 'block';
+
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

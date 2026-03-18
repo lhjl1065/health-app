@@ -1,0 +1,13 @@
+[ {
+  "date" : "2026-03-10",
+  "completedParts" : [ "HAIR", "TOP", "NAILS", "MOUTH", "SOCKS", "PANTS", "SHOES", "BODY", "FACE" ]
+}, {
+  "date" : "2026-03-11",
+  "completedParts" : [ "HAIR", "TOP", "NAILS", "SOCKS", "FACE", "BODY" ]
+}, {
+  "date" : "2026-03-12",
+  "completedParts" : [ "HAIR", "TOP", "NAILS", "SOCKS", "PANTS", "FACE", "BODY" ]
+}, {
+  "date" : "2026-03-13",
+  "completedParts" : [ "TOP", "NAILS", "SOCKS", "PANTS", "FACE", "BODY" ]
+} ]

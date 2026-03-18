@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${journal.title}">查看日记</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Marked.js for Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --cream: #FAF7F2;
+            --sage: #8B9D83;
+            --sage-dark: #6B7D63;
+            --terracotta: #D4816F;
+            --soft-white: #FFFFFF;
+            --text-dark: #2C2C2C;
+            --text-medium: #5A5A5A;
+            --text-light: #8E8E8E;
+            --shadow-soft: rgba(139, 111, 71, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(165deg, #FAF7F2 0%, #F0EBE3 50%, #E8DFD0 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: var(--text-dark);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--soft-white);
+            border-radius: 24px;
+            padding: 60px;
+            box-shadow: 0 20px 60px var(--shadow-soft);
+            border: 1px solid rgba(139, 111, 71, 0.06);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 30px;
+        }
+
+        .back-link {
+            padding: 12px 24px;
+            background: rgba(139, 157, 131, 0.15);
+            color: var(--sage-dark);
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .back-link:hover {
+            background: rgba(139, 157, 131, 0.25);
+        }
+
+        .meta {
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid rgba(139, 157, 131, 0.1);
+        }
+
+        .date {
+            color: var(--text-light);
+            font-size: 16px;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            color: var(--text-dark);
+            font-size: 42px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 20px;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tag {
+            padding: 8px 16px;
+            background: rgba(139, 157, 131, 0.12);
+            color: var(--sage-dark);
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .content {
+            font-size: 17px;
+            line-height: 1.8;
+            color: var(--text-dark);
+        }
+
+        /* Markdown 渲染样式 */
+        .content h1, .content h2, .content h3, .content h4, .content h5, .content h6 {
+            font-family: 'Playfair Display', serif;
+            margin-top: 32px;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .content h1 { font-size: 32px; }
+        .content h2 { font-size: 28px; }
+        .content h3 { font-size: 24px; }
+        .content h4 { font-size: 20px; }
+
+        .content p {
+            margin-bottom: 16px;
+        }
+
+        .content ul, .content ol {
+            margin-bottom: 16px;
+            padding-left: 28px;
+        }
+
+        .content li {
+            margin-bottom: 8px;
+        }
+
+        .content blockquote {
+            border-left: 4px solid var(--sage);
+            padding-left: 20px;
+            margin: 20px 0;
+            color: var(--text-medium);
+            font-style: italic;
+        }
+
+        .content code {
+            background: rgba(139, 157, 131, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+        }
+
+        .content pre {
+            background: rgba(139, 157, 131, 0.08);
+            padding: 20px;
+            border-radius: 12px;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        .content pre code {
+            background: none;
+            padding: 0;
+        }
+
+        .content img {
+            max-width: 100%;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .content a {
+            color: var(--sage-dark);
+            text-decoration: underline;
+        }
+
+        .content a:hover {
+            color: var(--sage);
+        }
+
+        .content hr {
+            border: none;
+            border-top: 2px solid rgba(139, 157, 131, 0.1);
+            margin: 32px 0;
+        }
+
+        .actions {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid rgba(139, 157, 131, 0.1);
+            display: flex;
+            gap: 12px;
+        }
+
+        .action-btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .action-btn.edit {
+            background: linear-gradient(135deg, var(--sage) 0%, var(--sage-dark) 100%);
+            color: var(--soft-white);
+        }
+
+        .action-btn.delete {
+            background: rgba(212, 129, 111, 0.15);
+            color: var(--terracotta);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .card {
+                padding: 40px 24px;
+            }
+            h1 {
+                font-size: 32px;
+            }
+            .header {
+                flex-direction: column;
+                gap: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <div style="flex: 1;"></div>
+                <a href="/journal" class="back-link">← 返回列表</a>
+            </div>
+
+            <div class="meta">
+                <div class="date" th:text="${journal.date}"></div>
+                <h1 th:text="${journal.title}"></h1>
+                <div class="tags" th:if="${journal.tags != null and !journal.tags.isEmpty()}">
+                    <span class="tag" th:each="tag : ${journal.tags}" th:text="'#' + ${tag}"></span>
+                </div>
+            </div>
+
+            <div class="content" id="markdown-content"></div>
+
+            <div class="actions">
+                <a th:href="@{/journal/edit/{id}(id=${journal.id})}" class="action-btn edit">✏️ 编辑</a>
+                <form th:action="@{/journal/delete/{id}(id=${journal.id})}" method="post" style="display: inline;" onsubmit="return confirm('确定要删除这篇日记吗？')">
+                    <button type="submit" class="action-btn delete">🗑️ 删除</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        // 获取 Markdown 内容并渲染
+        const markdownContent = /*[[${journal.content}]]*/ '';
+        const contentDiv = document.getElementById('markdown-content');
+
+        // 配置 marked
+        marked.setOptions({
+            breaks: true,
+            gfm: true
+        });
+
+        // 渲染 Markdown
+        contentDiv.innerHTML = marked.parse(markdownContent);
+    </script>
+</body>
+</html>
