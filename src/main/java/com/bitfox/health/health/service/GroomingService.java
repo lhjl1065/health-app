@@ -89,8 +89,32 @@ public class GroomingService {
         return record;
     }
 
+    public GroomingRecord toggleHouseClean(LocalDate date) throws IOException {
+        List<GroomingRecord> records = readAll();
+        GroomingRecord record = records.stream()
+                .filter(r -> date.equals(r.getDate()))
+                .findFirst()
+                .orElse(null);
+
+        if (record == null) {
+            record = new GroomingRecord();
+            record.setDate(date);
+            record.setCompletedParts(new HashSet<>());
+            records.add(record);
+        }
+
+        record.setHouseClean(!record.isHouseClean());
+        saveAll(records);
+        return record;
+    }
+
     public double calculateGroomingPoints(LocalDate date) throws IOException {
         GroomingRecord record = getRecord(date);
-        return record != null ? record.getPoints() : 0.0;
+        return record != null ? record.getGroomingPoints() : 0.0;
+    }
+
+    public double calculateHouseCleanPoints(LocalDate date) throws IOException {
+        GroomingRecord record = getRecord(date);
+        return record != null ? record.getHouseCleanPoints() : 0.0;
     }
 }

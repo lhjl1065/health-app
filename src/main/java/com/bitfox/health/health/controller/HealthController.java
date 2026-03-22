@@ -126,21 +126,26 @@ public class HealthController {
             model.addAttribute("groomingParts", GroomingRecord.ALL_PARTS);
             double groomingPoints = groomingService.calculateGroomingPoints(getEffectiveDate());
             model.addAttribute("groomingPoints", groomingPoints);
+            double houseCleanPoints = groomingService.calculateHouseCleanPoints(getEffectiveDate());
+            model.addAttribute("houseCleanPoints", houseCleanPoints);
 
             // 构建历史记录的个人整洁积分 map
             java.util.Map<LocalDate, Double> groomingPointsMap = new java.util.HashMap<>();
             java.util.Map<LocalDate, Integer> groomingCountMap = new java.util.HashMap<>();
+            java.util.Map<LocalDate, Boolean> houseCleanMap = new java.util.HashMap<>();
             for (HealthRecord r : records) {
                 if (r.getDate() != null) {
                     try {
                         GroomingRecord gr = groomingService.getRecord(r.getDate());
                         groomingPointsMap.put(r.getDate(), groomingService.calculateGroomingPoints(r.getDate()));
                         groomingCountMap.put(r.getDate(), gr != null ? gr.getCompletedParts().size() : 0);
+                        houseCleanMap.put(r.getDate(), gr != null && gr.isHouseClean());
                     } catch (IOException ignored) {}
                 }
             }
             model.addAttribute("groomingPointsMap", groomingPointsMap);
             model.addAttribute("groomingCountMap", groomingCountMap);
+            model.addAttribute("houseCleanMap", houseCleanMap);
 
         } catch (IOException e) {
             model.addAttribute("error", "读取Excel文件失败: " + e.getMessage());
@@ -193,17 +198,21 @@ public class HealthController {
 
         // 计算个人整洁积分平均值
         double groomingTotal = 0;
+        double houseCleanTotal = 0;
         int groomingDays = 0;
         for (HealthRecord r : lastWeekRecords) {
             if (r.getDate() != null) {
                 try {
                     double gp = groomingService.calculateGroomingPoints(r.getDate());
+                    double hp = groomingService.calculateHouseCleanPoints(r.getDate());
                     groomingTotal += gp;
+                    houseCleanTotal += hp;
                     groomingDays++;
                 } catch (IOException ignored) {}
             }
         }
         stats.addAverage("个人整洁", groomingDays > 0 ? groomingTotal / groomingDays : 0.0);
+        stats.addAverage("房屋整洁", groomingDays > 0 ? houseCleanTotal / groomingDays : 0.0);
 
         return stats;
     }
@@ -368,7 +377,23 @@ public class HealthController {
             response.put("success", true);
             response.put("completedParts", record.getCompletedParts());
             response.put("allCompleted", record.isAllCompleted());
-            response.put("points", record.getPoints());
+            response.put("points", record.getGroomingPoints());
+        } catch (IOException e) {
+            response.put("success", false);
+            response.put("message", "更新失败: " + e.getMessage());
+        }
+        return response;
+    }
+
+    @PostMapping("/house-clean/toggle")
+    @org.springframework.web.bind.annotation.ResponseBody
+    public java.util.Map<String, Object> toggleHouseClean() {
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+        try {
+            GroomingRecord record = groomingService.toggleHouseClean(getEffectiveDate());
+            response.put("success", true);
+            response.put("houseClean", record.isHouseClean());
+            response.put("points", record.getHouseCleanPoints());
         } catch (IOException e) {
             response.put("success", false);
             response.put("message", "更新失败: " + e.getMessage());

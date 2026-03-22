@@ -17,6 +17,7 @@ import java.util.Set;
 public class GroomingRecord {
     private LocalDate date;
     private Set<String> completedParts = new HashSet<>();
+    private boolean houseClean = false;
 
     public static final List<String> ALL_PARTS = Arrays.asList(
             "HAIR", "FACE", "MOUTH", "BODY", "TOP", "PANTS", "SOCKS", "SHOES", "NAILS"
@@ -28,7 +29,12 @@ public class GroomingRecord {
     }
 
     @JsonIgnore
-    public double getPoints() {
+    public double getGroomingPoints() {
         return isAllCompleted() ? 0.5 : 0.0;
+    }
+
+    @JsonIgnore
+    public double getHouseCleanPoints() {
+        return houseClean ? 0.2 : 0.0;
     }
 }

@@ -542,6 +542,61 @@
             60% { transform: scale(1.2); }
             100% { transform: scale(1); opacity: 1; }
         }
+        /* 房屋整洁样式 */
+        .house-clean-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            background: #f0ebe3;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+            margin-top: 10px;
+        }
+        .house-clean-container:hover {
+            transform: scale(1.02);
+            box-shadow: 0 2px 8px var(--shadow-medium);
+        }
+        .house-clean-container.active {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border-color: var(--sage);
+        }
+        .house-clean-icon {
+            font-size: 24px;
+        }
+        .house-clean-text {
+            font-size: 15px;
+            color: var(--text-medium);
+            font-weight: 500;
+        }
+        .house-clean-container.active .house-clean-text {
+            color: var(--sage-dark);
+            font-weight: 600;
+        }
+        .house-clean-check {
+            margin-left: auto;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--sage-dark);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .house-clean-container.active .house-clean-check {
+            opacity: 1;
+        }
+        .house-clean-status {
+            text-align: center;
+            margin-top: 8px;
+            font-size: 14px;
+        }
+        .house-clean-bonus {
+            color: var(--terracotta);
+            font-weight: 700;
+            animation: bonusPop 0.5s ease;
+        }
     </style>
 </head>
 <body>
@@ -728,6 +783,21 @@
                     <input type="hidden" id="groomingPoints" th:value="${groomingPoints != null ? groomingPoints : 0}">
                 </div>
 
+                <!-- 房屋整洁 -->
+                <div class="form-group">
+                    <label>🏠 房屋整洁</label>
+                    <div class="house-clean-container" id="houseCleanToggle"
+                         th:classappend="${groomingRecord != null and groomingRecord.houseClean} ? ' active' : ''">
+                        <span class="house-clean-icon">🏠</span>
+                        <span class="house-clean-text">今日房屋已整洁</span>
+                        <span class="house-clean-check" id="houseCleanCheck">✓</span>
+                    </div>
+                    <div class="house-clean-status" id="houseCleanStatus">
+                        <span class="house-clean-bonus" id="houseCleanBonus" style="display:none;">✨ +0.2分</span>
+                    </div>
+                    <input type="hidden" id="houseCleanPoints" th:value="${houseCleanPoints != null ? houseCleanPoints : 0}">
+                </div>
+
                 <div class="form-group">
                     <label for="dailyTotal">📊 今日累计</label>
                     <input type="text" id="dailyTotal" name="dailyTotal" placeholder="自动计算" readonly th:value="${todayRecord != null ? todayRecord.dailyTotal : ''}">
@@ -805,6 +875,12 @@
                         total += groomingPts;
                     }
 
+                    // 加上房屋整洁积分
+                    const houseCleanPts = parseFloat(document.getElementById('houseCleanPoints').value);
+                    if (!isNaN(houseCleanPts)) {
+                        total += houseCleanPts;
+                    }
+
                     // 更新今日累计
                     document.getElementById('dailyTotal').value = total.toFixed(1);
                 }
@@ -860,6 +936,51 @@
 
                     // 初始化计数
                     updateGroomingUI();
+                })();
+            </script>
+
+            <script>
+                // 房屋整洁交互
+                (function() {
+                    const toggle = document.getElementById('houseCleanToggle');
+                    const bonusEl = document.getElementById('houseCleanBonus');
+                    const houseCleanPointsEl = document.getElementById('houseCleanPoints');
+
+                    function updateHouseCleanUI() {
+                        if (toggle.classList.contains('active')) {
+                            bonusEl.style.display = 'inline-block';
+                            houseCleanPointsEl.value = '0.2';
+                        } else {
+                            bonusEl.style.display = 'none';
+                            houseCleanPointsEl.value = '0';
+                        }
+                        if (typeof calculateTotal === 'function') {
+                            calculateTotal();
+                        }
+                    }
+
+                    toggle.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        fetch('/house-clean/toggle', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+                        })
+                        .then(function(res) { return res.json(); })
+                        .then(function(data) {
+                            if (data.success) {
+                                toggle.classList.toggle('active');
+                                updateHouseCleanUI();
+                            }
+                        })
+                        .catch(function(err) {
+                            console.error('House clean toggle failed:', err);
+                        });
+                    });
+
+                    // 初始化
+                    updateHouseCleanUI();
                 })();
             </script>
 
@@ -968,6 +1089,9 @@
                             <small style="color: var(--sage-dark); font-weight: 600;" th:if="${groomingPointsMap.get(record.date) > 0}">
                                 (✨ +0.5 分)
                             </small>
+                        </div>
+                        <div th:if="${houseCleanMap != null and houseCleanMap.containsKey(record.date) and houseCleanMap.get(record.date)}">
+                            🏠 房屋整洁: <small style="color: var(--sage-dark); font-weight: 600;">✨ +0.2 分</small>
                         </div>
                         <div th:if="${record.dailyTotal != null and !record.dailyTotal.isEmpty()}" style="font-weight: 700; color: var(--sage-dark); margin-top: 10px; font-size: 16px;">
                             📊 今日累计: <span th:text="${record.dailyTotal}"></span> 分
