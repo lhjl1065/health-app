@@ -537,4 +537,26 @@
   "recurrenceDay" : null,
   "parentTaskId" : null,
   "recurring" : false
+}, {
+  "id" : "4d7693bb-7cd7-402b-8ffa-fafa70e1a47c",
+  "date" : "2026-03-22",
+  "description" : "洗衣服",
+  "completed" : false,
+  "points" : 0.2,
+  "originalDate" : null,
+  "recurrenceType" : "ONCE",
+  "recurrenceDay" : null,
+  "parentTaskId" : "dc66968c-4aa4-41cc-b41b-285d34b9b2da",
+  "recurring" : false
+}, {
+  "id" : "a9d8414c-8a1a-43ec-a0e1-83bff3843973",
+  "date" : "2026-03-22",
+  "description" : "打扫和整理屋子",
+  "completed" : false,
+  "points" : 0.5,
+  "originalDate" : null,
+  "recurrenceType" : "ONCE",
+  "recurrenceDay" : null,
+  "parentTaskId" : "01d4f7c2-25ba-4d2b-814d-13d4b33b9ab7",
+  "recurring" : false
 } ]

@@ -79,9 +79,11 @@ public class HealthController {
                 model.addAttribute("todayRecord", todayRecord);
             }
 
-            // 获取昨天的体脂率
-            Double yesterdayBodyFat = getYesterdayBodyFat(records);
-            model.addAttribute("yesterdayBodyFat", yesterdayBodyFat != null ? yesterdayBodyFat : 0.0);
+            // 获取上一次有体脂率记录的数据
+            HealthRecord lastBodyFatRecord = getLastBodyFatRecord(records);
+            Double lastBodyFat = lastBodyFatRecord != null ? lastBodyFatRecord.getBodyFatPercentage() : null;
+            model.addAttribute("lastBodyFat", lastBodyFat != null ? lastBodyFat : 0.0);
+            model.addAttribute("lastBodyFatDate", lastBodyFatRecord != null ? lastBodyFatRecord.getDate() : null);
 
             // 计算总积分和奖励进度
             double totalPoints = records.stream()
@@ -241,31 +243,32 @@ public class HealthController {
                 .orElse(0.0);
     }
 
-    private Double getYesterdayBodyFat(List<HealthRecord> records) {
-        LocalDate yesterday = getEffectiveDate().minusDays(1);
+    private HealthRecord getLastBodyFatRecord(List<HealthRecord> records) {
+        LocalDate today = getEffectiveDate();
+        // records已按日期倒序，找第一条日期在今天之前且有体脂率的记录
         return records.stream()
-                .filter(r -> r.getDate() != null && r.getDate().equals(yesterday))
+                .filter(r -> r.getDate() != null && r.getDate().isBefore(today))
+                .filter(r -> r.getBodyFatPercentage() != null)
                 .findFirst()
-                .map(HealthRecord::getBodyFatPercentage)
                 .orElse(null);
     }
 
     private void enrichRecordsWithBodyFatPoints(List<HealthRecord> records) {
-        // 创建日期到记录的映射
-        Map<LocalDate, HealthRecord> recordMap = records.stream()
+        // 按日期正序排列，方便找"上一次有体脂记录"的条目
+        List<HealthRecord> sorted = records.stream()
                 .filter(r -> r.getDate() != null)
-                .collect(Collectors.toMap(HealthRecord::getDate, r -> r, (a, b) -> a));
+                .sorted(Comparator.comparing(HealthRecord::getDate))
+                .collect(Collectors.toList());
 
-        // 为每条记录计算体脂率积分
-        for (HealthRecord record : records) {
-            if (record.getDate() != null && record.getBodyFatPercentage() != null) {
-                LocalDate previousDay = record.getDate().minusDays(1);
-                HealthRecord previousRecord = recordMap.get(previousDay);
-
-                if (previousRecord != null && previousRecord.getBodyFatPercentage() != null) {
-                    double points = (previousRecord.getBodyFatPercentage() - record.getBodyFatPercentage()) * 10;
+        // 遍历正序列表，记录上一次有体脂率的记录
+        HealthRecord lastWithBodyFat = null;
+        for (HealthRecord record : sorted) {
+            if (record.getBodyFatPercentage() != null) {
+                if (lastWithBodyFat != null) {
+                    double points = (lastWithBodyFat.getBodyFatPercentage() - record.getBodyFatPercentage()) * 10;
                     record.setCalculatedBodyFatPoints(points);
                 }
+                lastWithBodyFat = record;
             }
         }
     }

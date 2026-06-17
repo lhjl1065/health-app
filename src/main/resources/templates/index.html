@@ -706,13 +706,16 @@
                     <label for="bodyFatInput">⚖️ 体脂率</label>
                     <input type="number" step="0.1" id="bodyFatInput" placeholder="输入体脂率 (%)">
                     <input type="hidden" id="bodyFat" name="bodyFat" th:value="${todayRecord != null ? todayRecord.bodyFat : ''}">
-                    <input type="hidden" id="yesterdayBodyFat" th:value="${yesterdayBodyFat}">
+                    <input type="hidden" id="lastBodyFat" th:value="${lastBodyFat}">
+                    <input type="hidden" id="lastBodyFatDate" th:value="${lastBodyFatDate}">
                     <small style="display: block; margin-top: 8px;">
-                        积分将自动计算：(昨日体脂率 - 今日体脂率) × 10
-                        <span th:if="${yesterdayBodyFat != null and yesterdayBodyFat > 0}">
-                            （昨日: <span th:text="${#numbers.formatDecimal(yesterdayBodyFat, 1, 1)}"></span>%）
+                        积分将自动计算：(上次体脂率 - 今日体脂率) × 10
+                        <span th:if="${lastBodyFat != null and lastBodyFat > 0}">
+                            （上次: <span th:text="${#numbers.formatDecimal(lastBodyFat, 1, 1)}"></span>%，
+                            <span th:text="${lastBodyFatDate}"></span>）
                         </span>
                     </small>
+                    <div id="bodyFatFeedback" style="display: none; margin-top: 8px; padding: 8px; border-radius: 6px; font-size: 0.9em;"></div>
                 </div>
 
                 <!-- 个人整洁人偶 -->
@@ -811,7 +814,9 @@
                 // 体脂率计算
                 const bodyFatInput = document.getElementById('bodyFatInput');
                 const bodyFatHidden = document.getElementById('bodyFat');
-                const yesterdayBodyFatInput = document.getElementById('yesterdayBodyFat');
+                const lastBodyFatInput = document.getElementById('lastBodyFat');
+                const lastBodyFatDateInput = document.getElementById('lastBodyFatDate');
+                const bodyFatFeedback = document.getElementById('bodyFatFeedback');
 
                 // 页面加载时，如果有体脂率值，直接显示
                 window.addEventListener('DOMContentLoaded', function() {
@@ -820,6 +825,7 @@
                         bodyFatInput.value = bodyFatValue.toFixed(1);
                     }
                     calculateTotal();
+                    updateBodyFatFeedback();
                 });
 
                 bodyFatInput.addEventListener('input', function() {
@@ -831,7 +837,37 @@
                         bodyFatHidden.value = '';
                         calculateTotal();
                     }
+                    updateBodyFatFeedback();
                 });
+
+                function updateBodyFatFeedback() {
+                    const todayBodyFat = parseFloat(bodyFatHidden.value);
+                    const lastBodyFat = parseFloat(lastBodyFatInput.value);
+                    const lastDate = lastBodyFatDateInput.value;
+
+                    if (isNaN(todayBodyFat) || isNaN(lastBodyFat) || lastBodyFat <= 0) {
+                        bodyFatFeedback.style.display = 'none';
+                        return;
+                    }
+
+                    const points = (lastBodyFat - todayBodyFat) * 10;
+                    const diff = todayBodyFat - lastBodyFat;
+                    bodyFatFeedback.style.display = 'block';
+
+                    if (points > 0) {
+                        bodyFatFeedback.style.background = '#d4edda';
+                        bodyFatFeedback.style.color = '#155724';
+                        bodyFatFeedback.innerHTML = '👍 体脂下降 ' + Math.abs(diff).toFixed(1) + '%，获得 <strong>+' + points.toFixed(1) + '</strong> 积分！（上次 ' + lastBodyFat.toFixed(1) + '%，' + lastDate + '）';
+                    } else if (points < 0) {
+                        bodyFatFeedback.style.background = '#f8d7da';
+                        bodyFatFeedback.style.color = '#721c24';
+                        bodyFatFeedback.innerHTML = '⚠️ 体脂上升 ' + Math.abs(diff).toFixed(1) + '%，扣除 <strong>' + points.toFixed(1) + '</strong> 积分（上次 ' + lastBodyFat.toFixed(1) + '%，' + lastDate + '）';
+                    } else {
+                        bodyFatFeedback.style.background = '#d1ecf1';
+                        bodyFatFeedback.style.color = '#0c5460';
+                        bodyFatFeedback.innerHTML = '➡️ 体脂与上次持平，积分不变（上次 ' + lastBodyFat.toFixed(1) + '%，' + lastDate + '）';
+                    }
+                }
 
                 // 监听所有积分字段
                 const pointFields = ['diet1', 'diet2', 'sleep', 'selfControl', 'fitness', 'workPoints', 'studyPoints'];
@@ -853,10 +889,10 @@
 
                     // 加上体脂率积分
                     const todayBodyFat = parseFloat(bodyFatHidden.value);
-                    const yesterdayBodyFat = parseFloat(yesterdayBodyFatInput.value);
+                    const lastBodyFat = parseFloat(lastBodyFatInput.value);
 
-                    if (!isNaN(todayBodyFat) && !isNaN(yesterdayBodyFat) && yesterdayBodyFat > 0) {
-                        const bodyFatPoints = (yesterdayBodyFat - todayBodyFat) * 10;
+                    if (!isNaN(todayBodyFat) && !isNaN(lastBodyFat) && lastBodyFat > 0) {
+                        const bodyFatPoints = (lastBodyFat - todayBodyFat) * 10;
                         total += bodyFatPoints;
                     }
 
